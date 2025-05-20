@@ -1,0 +1,156 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Roleta Big Burguer</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background: #ffcc00;
+    }
+    #wheel-container {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      margin: 50px auto;
+    }
+    #wheel {
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      border: 10px solid #333;
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform: rotate(0deg);
+      transition: transform 4s ease-out;
+      background: conic-gradient(
+        #ff8000 0% 16.666%,
+        #000000 16.666% 33.333%,
+        #ff8000 33.333% 50%,
+        #000000 50% 66.666%,
+        #ff8000 66.666% 83.333%,
+        #000000 83.333% 100%
+      );
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .label {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0; left: 0;
+      transform: rotate(0deg);
+    }
+    .label span {
+      position: absolute;
+      width: 50%;
+      left: 50%;
+      top: 50%;
+      transform-origin: 0% 0%;
+      font-size: 14px;
+      font-weight: bold;
+      color: white;
+    }
+    #pointer {
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-bottom: 40px solid red;
+      position: absolute;
+      top: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+    }
+    #spin {
+      padding: 10px 20px;
+      font-size: 20px;
+      background: #e60000;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    #result {
+      font-size: 22px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Gire a roleta Big Burguer!</h1>
+  <div id="wheel-container">
+    <div id="pointer"></div>
+    <div id="wheel">
+      <div class="label">
+        <span style="transform: rotate(30deg);">Não ganhou nada</span>
+        <span style="transform: rotate(90deg);">Batata Frita</span>
+        <span style="transform: rotate(150deg);">Entrega Grátis</span>
+        <span style="transform: rotate(210deg);">15% OFF</span>
+        <span style="transform: rotate(270deg);">Chameguinho</span>
+        <span style="transform: rotate(330deg);">Maria Bonita</span>
+      </div>
+    </div>
+  </div>
+  <button id="spin">Girar</button>
+  <div id="result"></div>
+
+  <script>
+    const prizes = [
+      { name: "Não ganhou nada", chance: 40 },
+      { name: "Batata Frita", chance: 30 },
+      { name: "Entrega Grátis", chance: 10 },
+      { name: "15% OFF", chance: 10 },
+      { name: "Chameguinho", chance: 4 },
+      { name: "Maria Bonita", chance: 6 }
+    ];
+
+    const wheel = document.getElementById("wheel");
+    const spinButton = document.getElementById("spin");
+    const result = document.getElementById("result");
+
+    function pickPrize() {
+      const rand = Math.random() * 100;
+      let sum = 0;
+      for (let i = 0; i < prizes.length; i++) {
+        sum += prizes[i].chance;
+        if (rand <= sum) return { index: i, prize: prizes[i] };
+      }
+      return { index: 0, prize: prizes[0] };
+    }
+
+    function canSpin() {
+      const lastSpin = localStorage.getItem("lastSpinTime");
+      if (!lastSpin) return true;
+      const diff = Date.now() - parseInt(lastSpin);
+      return diff > 60 * 60 * 1000;
+    }
+
+    function saveSpinTime() {
+      localStorage.setItem("lastSpinTime", Date.now());
+    }
+
+    spinButton.onclick = () => {
+      if (!canSpin()) {
+        result.innerText = "Você só pode girar a roleta uma vez por hora!";
+        return;
+      }
+
+      const { index, prize } = pickPrize();
+      const degreesPerSegment = 360 / prizes.length;
+      const randomSpin = 360 * 5 + index * degreesPerSegment + degreesPerSegment / 2;
+      wheel.style.transform = `rotate(-${randomSpin}deg)`;
+
+      setTimeout(() => {
+        result.innerText = `Você ganhou: ${prize.name}`;
+        saveSpinTime();
+      }, 4000);
+    };
+  </script>
+</body>
+</html>
